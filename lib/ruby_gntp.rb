@@ -42,7 +42,7 @@ class GNTP
   attr_reader :message if $DEBUG
 
   RUBY_GNTP_NAME = 'ruby_gntp'
-  RUBY_GNTP_VERSION = '0.3.4'
+  RUBY_GNTP_VERSION = '0.3.4.1'
 
   def initialize(app_name = 'Ruby/GNTP', host = 'localhost', password = '', port = 23053)
     @app_name     = app_name
@@ -152,33 +152,39 @@ class GNTP
   def send_and_recieve(msg, callback=nil)
     print msg if $DEBUG
 
-    sock = TCPSocket.open(@target_host, @target_port)
-    sock.write msg
+    ret = 'OK'
 
-    ret = nil
-    while rcv = sock.gets
-      break if rcv == "\r\n"
-      print ">#{rcv}" if $DEBUG
-      ret = $1 if /GNTP\/1.0\s+-(\S+)/ =~ rcv
-    end
+    begin
+      sock = TCPSocket.open(@target_host, @target_port)
+      sock.write msg
 
-    if callback
-      Thread.new do 
-        response = {}
-        while rcv = sock.gets
-          break if rcv == "\r\n"
-          print ">>#{rcv}" if $DEBUG
-          response[:callback_result]        = $1 if /Notification-Callback-Result:\s+(\S*)\r\n/ =~ rcv
-          response[:callback_context]       = $1 if /Notification-Callback-Context:\s+(\S*)\r\n/ =~ rcv
-          response[:callback_context_type]  = $1 if /Notification-Callback-Context-Type:\s+(\S*)\r\n/ =~ rcv
-        end
-        callback.call(response)
-        sock.close
+      ret = nil
+      while rcv = sock.gets
+        break if rcv == "\r\n"
+        print ">#{rcv}" if $DEBUG
+        ret = $1 if /GNTP\/1.0\s+-(\S+)/ =~ rcv
       end
-      return true
-    end
 
-    sock.close
+      if callback
+        Thread.new do
+          response = {}
+          while rcv = sock.gets
+            break if rcv == "\r\n"
+            print ">>#{rcv}" if $DEBUG
+            response[:callback_result]        = $1 if /Notification-Callback-Result:\s+(\S*)\r\n/ =~ rcv
+            response[:callback_context]       = $1 if /Notification-Callback-Context:\s+(\S*)\r\n/ =~ rcv
+            response[:callback_context_type]  = $1 if /Notification-Callback-Context-Type:\s+(\S*)\r\n/ =~ rcv
+          end
+          callback.call(response)
+          sock.close
+        end
+        return true
+      end
+
+      sock.close
+    rescue
+      print "THERE WAS AN ERROR"
+    end
     return 'OK' == ret
   end
 
@@ -325,7 +331,7 @@ if __FILE__ == $0
     :app_name => "Instant notify",
     :host     => host,
     :passwd   => passwd,
-    :title    => "Instant notification", 
+    :title    => "Instant notification",
     :text     => "Instant notification available now.",
     :icon     => "http://www.hatena.ne.jp/users/sn/snaka72/profile.gif",
   }) do |response|
