@@ -1,8 +1,8 @@
 require 'lib/ruby_gntp'
 
 Gem::Specification.new do |s|
-  s.name = GNTP::RUBY_GNTP_NAME
-  s.version = GNTP::RUBY_GNTP_VERSION
+  s.name = "ruby_gntp"
+  s.version = "0.3.4.1"
   s.summary = "Ruby library for GNTP(Growl Notification Transport Protocol) client"
   s.authors = ["snaka", "David Hayward (spidah)"]
   s.email = ["snaka.gml@gmail.com", "spidahman@gmail.com"]
