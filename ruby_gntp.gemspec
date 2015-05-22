@@ -1,4 +1,3 @@
-require 'lib/ruby_gntp'
 
 Gem::Specification.new do |s|
   s.name = "ruby_gntp"
